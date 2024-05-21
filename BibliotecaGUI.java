@@ -1,16 +1,11 @@
+import java.util.ArrayList;
+
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
-import javafx.scene.control.ButtonBar;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.Dialog;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-import java.util.ArrayList;
 
 public class BibliotecaGUI extends Application {
     private ArrayList<Livro> biblioteca = new ArrayList<>();
@@ -37,7 +32,7 @@ public class BibliotecaGUI extends Application {
 
         root.getChildren().addAll(adicionarButton, removerButton, pesquisarButton, gerenciarEmprestimosButton, categorizarButton);
 
-        Scene scene = new Scene(root, 300, 200);
+        Scene scene = new Scene(root, 300, 250);
         primaryStage.setTitle("Sistema de Gerenciamento de Biblioteca");
         primaryStage.setScene(scene);
         primaryStage.show();
@@ -73,7 +68,7 @@ public class BibliotecaGUI extends Application {
                 String author = authorField.getText();
                 int year = Integer.parseInt(yearField.getText());
                 String genre = genreField.getText();
-                Livro livro = new Livro(title, author, year, genre);
+                Livro livro = new LivroFisico(title, author, year, genre);
                 biblioteca.add(livro);
                 return "adicionado";
             }
@@ -116,47 +111,4 @@ public class BibliotecaGUI extends Application {
 
         TextField titleField = new TextField();
 
-        ButtonType searchButton = new ButtonType("Pesquisar", ButtonBar.ButtonData.OK_DONE);
-        dialog.getDialogPane().getButtonTypes().addAll(searchButton, ButtonType.CANCEL);
-
-        VBox content = new VBox(10);
-        content.getChildren().addAll(titleField);
-        dialog.getDialogPane().setContent(content);
-
-        dialog.setResultConverter(dialogButton -> {
-            if (dialogButton == searchButton) {
-                String title = titleField.getText();
-                for (Livro livro : biblioteca) {
-                    if (livro.getTitulo().equals(title)) {
-                        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                        alert.setTitle("Livro Encontrado");
-                        alert.setHeaderText(null);
-                        alert.setContentText(livro.toString());
-                        alert.showAndWait();
-                        return "encontrado";
-                    }
-                }
-                Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                alert.setTitle("Livro Não Encontrado");
-                alert.setHeaderText(null);
-                alert.setContentText("Livro não encontrado na biblioteca.");
-                alert.showAndWait();
-            }
-            return null;
-        });
-
-        dialog.showAndWait();
-    }
-
-    private void gerenciarEmprestimos(Stage stage) {
-        // Implementar a lógica para gerenciar empréstimos aqui
-    }
-
-    private void categorizarLivros(Stage stage) {
-        // Implementar a lógica para categorizar livros aqui
-    }
-
-    public static void main(String[] args) {
-        launch(args);
-    }
-}
+        ButtonType searchButton = new But

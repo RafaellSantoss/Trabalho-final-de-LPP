@@ -3,12 +3,14 @@ public class Livro {
     private String autor;
     private int anoPublicacao;
     private String genero;
+    private boolean disponivel;
 
     public Livro(String titulo, String autor, int anoPublicacao, String genero) {
         this.titulo = titulo;
         this.autor = autor;
         this.anoPublicacao = anoPublicacao;
         this.genero = genero;
+        this.disponivel = true;
     }
 
     public String getTitulo() {
@@ -27,8 +29,16 @@ public class Livro {
         return genero;
     }
 
+    public boolean isDisponivel() {
+        return disponivel;
+    }
+
+    public void setDisponivel(boolean disponivel) {
+        this.disponivel = disponivel;
+    }
+
     @Override
     public String toString() {
-        return "Título: " + titulo + ", Autor: " + autor + ", Ano de Publicação: " + anoPublicacao + ", Gênero: " + genero;
+        return "Titulo: " + titulo + ", Autor: " + autor + ", Ano: " + anoPublicacao + ", Gênero: " + genero;
     }
 }
