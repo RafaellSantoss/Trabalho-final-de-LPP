@@ -111,4 +111,42 @@ public class BibliotecaGUI extends Application {
 
         TextField titleField = new TextField();
 
-        ButtonType searchButton = new But
+        ButtonType searchButton = new ButtonType("Pesquisar", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(searchButton, ButtonType.CANCEL);
+
+        VBox content = new VBox(10);
+        content.getChildren().addAll(titleField);
+        dialog.getDialogPane().setContent(content);
+
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == searchButton) {
+                String title = titleField.getText();
+                for (Livro livro : biblioteca) {
+                    if (livro.getTitulo().equals(title)) {
+                        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                        alert.setTitle("Livro Encontrado");
+                        alert.setHeaderText(null);
+                        alert.setContentText(livro.toString());
+                        alert.showAndWait();
+                        return "encontrado";
+                    }
+                }
+                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setTitle("Livro Não Encontrado");
+                alert.setHeaderText(null);
+                alert.setContentText("Livro não encontrado na biblioteca.");
+                alert.showAndWait();
+            }
+            return null;
+        });
+
+        dialog.showAndWait();
+    }
+
+    private void gerenciarEmprestimos(Stage stage) {
+        Dialog<String> dialog = new Dialog<>();
+        dialog.setTitle("Gerenciar Empréstimos");
+        dialog.setHeaderText("Escolha uma ação:");
+
+        ButtonType emprestarButton = new ButtonType("Emprestar Livro", ButtonBar.ButtonData.OK_DONE);
+        ButtonType devolverButton = new ButtonType("Devolver Livro",
