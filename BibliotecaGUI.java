@@ -3,12 +3,19 @@ import java.util.ArrayList;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 public class BibliotecaGUI extends Application {
     private ArrayList<Livro> biblioteca = new ArrayList<>();
+
 
     @Override
     public void start(Stage primaryStage) {
@@ -149,4 +156,122 @@ public class BibliotecaGUI extends Application {
         dialog.setHeaderText("Escolha uma ação:");
 
         ButtonType emprestarButton = new ButtonType("Emprestar Livro", ButtonBar.ButtonData.OK_DONE);
-        ButtonType devolverButton = new ButtonType("Devolver Livro",
+        ButtonType devolverButton = new ButtonType("Devolver Livro", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(emprestarButton, devolverButton, ButtonType.CANCEL);
+
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == emprestarButton) {
+                realizarEmprestimo(stage);
+            } else if (dialogButton == devolverButton) {
+                realizarDevolucao(stage);
+            }
+            return null;
+        });
+
+        dialog.showAndWait();
+    }
+
+    private void realizarEmprestimo(Stage stage) {
+        Dialog<String> dialog = new Dialog<>();
+        dialog.setTitle("Emprestar Livro");
+        dialog.setHeaderText("Digite o título do livro que deseja emprestar:");
+
+        TextField titleField = new TextField();
+
+        ButtonType emprestarButton = new ButtonType("Emprestar", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(emprestarButton, ButtonType.CANCEL);
+
+        VBox content = new VBox(10);
+        content.getChildren().addAll(titleField);
+        dialog.getDialogPane().setContent(content);
+
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == emprestarButton) {
+                String title = titleField.getText();
+                for (Livro livro : biblioteca) {
+                    if (livro.getTitulo().equals(title) && livro.isDisponivel()) {
+                        livro.setDisponivel(false);
+                        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                        alert.setTitle("Livro Emprestado");
+                        alert.setHeaderText(null);
+                        alert.setContentText("O livro \"" + title + "\" foi emprestado com sucesso.");
+                        alert.showAndWait();
+                        return "emprestado";
+                    }
+                }
+                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setTitle("Livro Não Encontrado");
+                alert.setHeaderText(null);
+                alert.setContentText("Livro não encontrado ou não disponível.");
+                alert.showAndWait();
+            }
+            return null;
+        });
+
+        dialog.showAndWait();
+    }
+
+    private void realizarDevolucao(Stage stage) {
+        Dialog<String> dialog = new Dialog<>();
+        dialog.setTitle("Devolver Livro");
+        dialog.setHeaderText("Digite o título do livro que deseja devolver:");
+
+        TextField titleField = new TextField();
+
+        ButtonType devolverButton = new ButtonType("Devolver", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(devolverButton, ButtonType.CANCEL);
+
+        VBox content = new VBox(10);
+        content.getChildren().addAll(titleField);
+        dialog.getDialogPane().setContent(content);
+
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == devolverButton) {
+                String title = titleField.getText();
+                for (Livro livro : biblioteca) {
+                    if (livro.getTitulo().equals(title) && !livro.isDisponivel()) {
+                        livro.setDisponivel(true);
+                        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                        alert.setTitle("Livro Devolvido");
+                        alert.setHeaderText(null);
+                        alert.setContentText("O livro \"" + title + "\" foi devolvido com sucesso.");
+                        alert.showAndWait();
+                        return "devolvido";
+                    }
+                }
+                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setTitle("Livro Não Encontrado");
+                alert.setHeaderText(null);
+                alert.setContentText("Livro não encontrado ou já está disponível.");
+                alert.showAndWait();
+            }
+            return null;
+        });
+
+        dialog.showAndWait();
+    }
+
+    private void categorizarLivros(Stage stage) {
+        Dialog<String> dialog = new Dialog<>();
+        dialog.setTitle("Categorizar Livros");
+        dialog.setHeaderText("Livros disponíveis na biblioteca:");
+
+        StringBuilder contentText = new StringBuilder();
+        for (Livro livro : biblioteca) {
+            contentText.append(livro.toString()).append("\n");
+        }
+
+        Label contentLabel = new Label(contentText.toString());
+        dialog.getDialogPane().setContent(contentLabel);
+
+        ButtonType okButton = new ButtonType("OK", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(okButton, ButtonType.CANCEL);
+
+        dialog.showAndWait();
+    }
+
+    public static void main(String[] args) {
+        launch(args);
+    }
+}
+
