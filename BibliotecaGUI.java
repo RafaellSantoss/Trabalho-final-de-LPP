@@ -1,3 +1,4 @@
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -11,6 +12,7 @@ import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ChoiceDialog;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.DatePicker;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
@@ -98,7 +100,7 @@ public class BibliotecaGUI extends Application {
 
         Label genreLabel = new Label("Gênero:");
         ComboBox<String> genreComboBox = new ComboBox<>();
-        genreComboBox.getItems().addAll("Ação", "Romance", "Terror", "Poesia", "Mistério" );
+        genreComboBox.getItems().addAll("Ação", "Romance", "Terror", "Poesia", "Mistério");
 
         Label typeLabel = new Label("Tipo:");
         ComboBox<String> typeComboBox = new ComboBox<>();
@@ -120,21 +122,30 @@ public class BibliotecaGUI extends Application {
         // Conversor de resultado do diálogo
         dialog.setResultConverter(dialogButton -> {
             if (dialogButton == addButton) {
-                String title = titleField.getText();
-                String author = authorField.getText();
-                int year = Integer.parseInt(yearField.getText());
-                String genre = genreComboBox.getValue();
-                String type = typeComboBox.getValue();
-                int quantity = Integer.parseInt(quantityField.getText());
-                if (type.equals("Físico") || type.equals("Ambos")) {
-                    Livro livroFisico = new LivroFisico(title, author, year, genre, quantity);
-                    biblioteca.add(livroFisico);
+                try {
+                    String title = titleField.getText();
+                    String author = authorField.getText();
+                    int year = Integer.parseInt(yearField.getText());
+                    String genre = genreComboBox.getValue();
+                    String type = typeComboBox.getValue();
+                    int quantity = Integer.parseInt(quantityField.getText());
+                    if (type.equals("Físico") || type.equals("Ambos")) {
+                        Livro livroFisico = new LivroFisico(title, author, year, genre, quantity);
+                        biblioteca.add(livroFisico);
+                    }
+                    if (type.equals("Digital") || type.equals("Ambos")) {
+                        Livro livroDigital = new LivroDigital(title, author, year, genre, quantity);
+                        biblioteca.add(livroDigital);
+                    }
+                    return "adicionado";
+                } catch (NumberFormatException e) {
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.setTitle("Erro ao Adicionar Livro");
+                    alert.setHeaderText(null);
+                    alert.setContentText("Certifique-se de inserir um ano válido e uma quantidade válida.");
+                    alert.showAndWait();
+                    return null;
                 }
-                if (type.equals("Digital") || type.equals("Ambos")) {
-                    Livro livroDigital = new LivroDigital(title, author, year, genre, quantity);
-                    biblioteca.add(livroDigital);
-                }
-                return "adicionado";
             }
             return null;
         });
@@ -157,7 +168,6 @@ public class BibliotecaGUI extends Application {
         // Botão para remover o livro
         ButtonType removeButton = new ButtonType("Remover", ButtonBar.ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().addAll(removeButton, ButtonType.CANCEL);
-
         // Layout do conteúdo do diálogo
         VBox content = new VBox(10);
         content.getChildren().addAll(new Label("Título:"), titleField, typeLabel, typeComboBox);
@@ -219,6 +229,7 @@ public class BibliotecaGUI extends Application {
                         livrosEncontrados.add(livro);
                     }
                 }
+                // Alerta com os resultados da pesquisa
                 Alert alert = new Alert(Alert.AlertType.INFORMATION);
                 if (livrosEncontrados.isEmpty()) {
                     alert.setTitle("Livro Não Encontrado");
@@ -244,190 +255,110 @@ public class BibliotecaGUI extends Application {
 
     private void gerenciarEmprestimos(Stage stage) {
         // Diálogo para gerenciar empréstimos
-        Dialog<String> dialog = new Dialog<>();
+        ChoiceDialog<String> dialog = new ChoiceDialog<>("Registrar Empréstimo", "Registrar Empréstimo", "Devolver Livro");
         dialog.setTitle("Gerenciar Empréstimos");
-        dialog.setHeaderText("Escolha uma ação:");
-
-        // Botões para emprestar ou devolver livros
-        ButtonType emprestarButton = new ButtonType("Emprestar Livro", ButtonBar.ButtonData.OK_DONE);
-        ButtonType devolverButton = new ButtonType("Devolver Livro", ButtonBar.ButtonData.OK_DONE);
-        dialog.getDialogPane().getButtonTypes().addAll(emprestarButton, devolverButton, ButtonType.CANCEL);
-
-        // Conversor de resultado do diálogo
-        dialog.setResultConverter(dialogButton -> {
-            if (dialogButton == emprestarButton) {
-                realizarEmprestimo(stage);
-            } else if (dialogButton == devolverButton) {
-                realizarDevolucao(stage);
-            }
-            return null;
-        });
-
-        dialog.showAndWait();
-    }
-
-    private void realizarEmprestimo(Stage stage) {
-        List<LivroFisico> livrosDisponiveis = new ArrayList<>();
-        for (Livro livro : biblioteca) {
-            if (livro instanceof LivroFisico && livro.getQuantidade() > 0) {
-                livrosDisponiveis.add((LivroFisico) livro);
-            }
-        }
-
-        List<String> titulosDisponiveis = new ArrayList<>();
-        for (LivroFisico livro : livrosDisponiveis) {
-            titulosDisponiveis.add(livro.getTitulo() + " (" + livro.getQuantidade() + " disponíveis)");
-        }
-
-        ChoiceDialog<String> dialog = new ChoiceDialog<>(null, titulosDisponiveis);
-        dialog.setTitle("Emprestar Livro");
-        dialog.setHeaderText("Escolha um livro físico disponível para emprestar:");
-        dialog.setContentText("Título:");
+        dialog.setHeaderText("Escolha uma opção:");
 
         Optional<String> result = dialog.showAndWait();
-        result.ifPresent(selectedTitle -> {
-            for (LivroFisico livro : livrosDisponiveis) {
-                if (selectedTitle.startsWith(livro.getTitulo())) {
-                    livro.setQuantidade(livro.getQuantidade() - 1);
-                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                    alert.setTitle("Livro Emprestado");
-                    alert.setHeaderText(null);
-                    alert.setContentText("O livro \"" + livro.getTitulo() + "\" foi emprestado com sucesso. Quantidade restante: " + livro.getQuantidade());
-                    alert.showAndWait();
-                    break;
-                }
-            }
-        });
-    }
+        result.ifPresent(option-> {
+            if (option.equals("Registrar Empréstimo")) {
+                // Implementação do registro de empréstimo
+                Dialog<String> emprestimoDialog = new Dialog<>();
+                emprestimoDialog.setTitle("Registrar Empréstimo");
+                emprestimoDialog.setHeaderText("Digite os detalhes do empréstimo:");
 
-    private void realizarDevolucao(Stage stage) {
-        Dialog<String> dialog = new Dialog<>();
-        dialog.setTitle("Devolver Livro");
-        dialog.setHeaderText("Digite o título do livro que deseja devolver:");
+                // Campos para inserir os detalhes do empréstimo
+                Label userLabel = new Label("Usuário:");
+                TextField userField = new TextField();
 
-        TextField titleField = new TextField();
-
-        ButtonType devolverButton = new ButtonType("Devolver", ButtonBar.ButtonData.OK_DONE);
-        dialog.getDialogPane().getButtonTypes().addAll(devolverButton, ButtonType.CANCEL);
-
-        VBox content = new VBox(10);
-        content.getChildren().addAll(new Label("Título:"), titleField);
-        content.setPadding(new Insets(10));
-        dialog.getDialogPane().setContent(content);
-
-        dialog.setResultConverter(dialogButton -> {
-            if (dialogButton == devolverButton) {
-                String title = titleField.getText();
+                Label bookLabel = new Label("Livro:");
+                ComboBox<String> bookComboBox = new ComboBox<>();
                 for (Livro livro : biblioteca) {
-                    if (livro.getTitulo().equals(title)) {
-                        livro.setQuantidade(livro.getQuantidade() + 1);
-                        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                        alert.setTitle("Livro Devolvido");
-                        alert.setHeaderText(null);
-                        alert.setContentText("O livro \"" + title + "\" foi devolvido com sucesso. Quantidade atual: " + livro.getQuantidade());
-                        alert.showAndWait();
+                    bookComboBox.getItems().add(livro.getTitulo());
+                }
+
+                Label dateLabel = new Label("Data de Empréstimo:");
+                DatePicker datePicker = new DatePicker();
+
+                ButtonType confirmButton = new ButtonType("Confirmar", ButtonBar.ButtonData.OK_DONE);
+                emprestimoDialog.getDialogPane().getButtonTypes().addAll(confirmButton, ButtonType.CANCEL);
+
+                VBox content = new VBox(10);
+                content.getChildren().addAll(userLabel, userField, bookLabel, bookComboBox, dateLabel, datePicker);
+                content.setPadding(new Insets(10));
+                emprestimoDialog.getDialogPane().setContent(content);
+
+                emprestimoDialog.setResultConverter(dialogButton -> {
+                    if (dialogButton == confirmButton) {
+                        String user = userField.getText();
+                        String bookTitle = bookComboBox.getValue();
+                        LocalDate date = datePicker.getValue();
+                        // Lógica para registrar o empréstimo
+                        return "emprestado";
+                    }
+                    return null;
+                });
+
+                emprestimoDialog.showAndWait();
+            } else if (option.equals("Devolver Livro")) {
+                // Implementação da devolução de livro
+                Dialog<String> devolucaoDialog = new Dialog<>();
+                devolucaoDialog.setTitle("Devolver Livro");
+                devolucaoDialog.setHeaderText("Digite os detalhes da devolução:");
+
+                // Campos para inserir os detalhes da devolução
+                Label userLabel = new Label("Usuário:");
+                TextField userField = new TextField();
+
+                Label bookLabel = new Label("Livro:");
+                ComboBox<String> bookComboBox = new ComboBox<>();
+                for (Livro livro : biblioteca) {
+                    bookComboBox.getItems().add(livro.getTitulo());
+                }
+
+                Label dateLabel = new Label("Data de Devolução:");
+                DatePicker datePicker = new DatePicker();
+
+                ButtonType confirmButton = new ButtonType("Confirmar", ButtonBar.ButtonData.OK_DONE);
+                devolucaoDialog.getDialogPane().getButtonTypes().addAll(confirmButton, ButtonType.CANCEL);
+
+                VBox content = new VBox(10);
+                content.getChildren().addAll(userLabel, userField, bookLabel, bookComboBox, dateLabel, datePicker);
+                content.setPadding(new Insets(10));
+                devolucaoDialog.getDialogPane().setContent(content);
+
+                devolucaoDialog.setResultConverter(dialogButton -> {
+                    if (dialogButton == confirmButton) {
+                        String user = userField.getText();
+                        String bookTitle = bookComboBox.getValue();
+                        LocalDate date = datePicker.getValue();
+                        // Lógica para devolver o livro
                         return "devolvido";
                     }
-                }
-                Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                alert.setTitle("Livro Não Encontrado");
-                alert.setHeaderText(null);
-                alert.setContentText("Livro não encontrado na biblioteca.");
-                alert.showAndWait();
-            }
-            return null;
-        });
+                    return null;
+                });
 
-        dialog.showAndWait();
+                devolucaoDialog.showAndWait();
+            }
+        });
     }
 
     private void categorizarLivros(Stage stage) {
-        Dialog<String> dialog = new Dialog<>();
-        dialog.setTitle("Categorizar Livros");
-        dialog.setHeaderText("Livros disponíveis na biblioteca:");
-
-        StringBuilder contentText = new StringBuilder();
-        for (Livro livro : biblioteca) {
-            contentText.append(livro.toString()).append("\n");
-        }
-
-        Label contentLabel = new Label(contentText.toString());
-        dialog.getDialogPane().setContent(contentLabel);
-
-        ButtonType okButton = new ButtonType("OK", ButtonBar.ButtonData.OK_DONE);
-        dialog.getDialogPane().getButtonTypes().addAll(okButton, ButtonType.CANCEL);
-
-        dialog.showAndWait();
+        // Diálogo para categorizar livros
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Categorizar Livros");
+        alert.setHeaderText(null);
+        alert.setContentText("Esta funcionalidade ainda não foi implementada.");
+        alert.showAndWait();
     }
-
+    
     public static void main(String[] args) {
         launch(args);
     }
+
 }
 
-class Livro {
-    private String titulo;
-    private String autor;
-    private int ano;
-    private String genero;
-    private int quantidade;
 
-    public Livro(String titulo, String autor, int ano, String genero, int quantidade) {
-        this.titulo = titulo;
-        this.autor = autor;
-        this.ano = ano;
-        this.genero = genero;
-        this.quantidade = quantidade;
-    }
 
-    public String getTitulo() {
-        return titulo;
-    }
 
-    public String getAutor() {
-        return autor;
-    }
 
-    public int getAno() {
-        return ano;
-    }
-
-    public String getGenero() {
-        return genero;
-    }
-
-    public int getQuantidade() {
-        return quantidade;
-    }
-
-    public void setQuantidade(int quantidade) {
-        this.quantidade = quantidade;
-    }
-
-    @Override
-    public String toString() {
-        return titulo + " - " + autor + " (" + ano + "), " + genero + " - Quantidade: " + quantidade;
-    }
-}
-
-class LivroFisico extends Livro {
-    public LivroFisico(String titulo, String autor, int ano, String genero, int quantidade) {
-        super(titulo, autor, ano, genero, quantidade);
-    }
-
-    @Override
-    public String toString() {
-        return "[Físico] " + super.toString();
-    }
-}
-
-class LivroDigital extends Livro {
-    public LivroDigital(String titulo, String autor, int ano, String genero, int quantidade) {
-        super(titulo, autor, ano, genero, quantidade);
-    }
-
-    @Override
-    public String toString() {
-        return "[Digital] " + super.toString();
-    }
-}

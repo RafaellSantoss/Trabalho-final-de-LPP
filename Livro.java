@@ -1,16 +1,20 @@
-public class Livro {
-    private String titulo;
-    private String autor;
-    private int anoPublicacao;
-    private String genero;
-    private boolean disponivel;
+abstract class Livro {
+    protected String titulo;
+    protected String autor;
+    protected int anoPublicacao;
+    protected String genero;
+    protected int quantidade;
+    protected boolean emprestado;
+    protected String nomeEmprestimo;
 
-    public Livro(String titulo, String autor, int anoPublicacao, String genero) {
+    public Livro(String titulo, String autor, int anoPublicacao, String genero, int quantidade) {
         this.titulo = titulo;
         this.autor = autor;
         this.anoPublicacao = anoPublicacao;
         this.genero = genero;
-        this.disponivel = true;
+        this.quantidade = quantidade;
+        this.emprestado = false;
+        this.nomeEmprestimo = null;
     }
 
     public String getTitulo() {
@@ -29,16 +33,42 @@ public class Livro {
         return genero;
     }
 
-    public boolean isDisponivel() {
-        return disponivel;
+    public int getQuantidade() {
+        return quantidade;
     }
 
-    public void setDisponivel(boolean disponivel) {
-        this.disponivel = disponivel;
+    public boolean isEmprestado() {
+        return emprestado;
+    }
+
+    public String getNomeEmprestimo() {
+        return nomeEmprestimo;
+    }
+
+    public void registrarEmprestimo(String nomeEmprestimo) {
+        if (!emprestado && quantidade > 0) {
+            this.emprestado = true;
+            this.nomeEmprestimo = nomeEmprestimo;
+            quantidade--;
+        }
+    }
+
+    public void devolverLivro() {
+        if (emprestado) {
+            this.emprestado = false;
+            this.nomeEmprestimo = null;
+            quantidade++;
+        }
     }
 
     @Override
     public String toString() {
-        return "Titulo: " + titulo + ", Autor: " + autor + ", Ano: " + anoPublicacao + ", Gênero: " + genero;
+        return "Título: " + titulo +
+                ", Autor: " + autor +
+                ", Ano de Publicação: " + anoPublicacao +
+                ", Gênero: " + genero +
+                ", Quantidade: " + quantidade +
+                ", Emprestado: " + (emprestado ? "Sim" : "Não") +
+                (emprestado ? ", Nome do Empréstimo: " + nomeEmprestimo : "");
     }
 }
