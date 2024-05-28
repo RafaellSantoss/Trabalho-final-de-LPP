@@ -89,15 +89,21 @@ public class BibliotecaGUI extends Application {
         // Campos para inserir os detalhes do livro
         Label titleLabel = new Label("Título:");
         TextField titleField = new TextField();
+
         Label authorLabel = new Label("Autor:");
         TextField authorField = new TextField();
+
         Label yearLabel = new Label("Ano de Publicação:");
         TextField yearField = new TextField();
+
         Label genreLabel = new Label("Gênero:");
-        TextField genreField = new TextField();
+        ComboBox<String> genreComboBox = new ComboBox<>();
+        genreComboBox.getItems().addAll("Ação", "Romance", "Terror", "Poesia", "Mistério" );
+
         Label typeLabel = new Label("Tipo:");
         ComboBox<String> typeComboBox = new ComboBox<>();
         typeComboBox.getItems().addAll("Físico", "Digital", "Ambos");
+
         Label quantityLabel = new Label("Quantidade:");
         TextField quantityField = new TextField();
 
@@ -107,7 +113,7 @@ public class BibliotecaGUI extends Application {
 
         // Layout do conteúdo do diálogo
         VBox content = new VBox(10);
-        content.getChildren().addAll(titleLabel, titleField, authorLabel, authorField, yearLabel, yearField, genreLabel, genreField, typeLabel, typeComboBox, quantityLabel, quantityField);
+        content.getChildren().addAll(titleLabel, titleField, authorLabel, authorField, yearLabel, yearField, genreLabel, genreComboBox, typeLabel, typeComboBox, quantityLabel, quantityField);
         content.setPadding(new Insets(10));
         dialog.getDialogPane().setContent(content);
 
@@ -117,7 +123,7 @@ public class BibliotecaGUI extends Application {
                 String title = titleField.getText();
                 String author = authorField.getText();
                 int year = Integer.parseInt(yearField.getText());
-                String genre = genreField.getText();
+                String genre = genreComboBox.getValue();
                 String type = typeComboBox.getValue();
                 int quantity = Integer.parseInt(quantityField.getText());
                 if (type.equals("Físico") || type.equals("Ambos")) {
