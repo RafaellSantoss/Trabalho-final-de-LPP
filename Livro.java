@@ -6,8 +6,9 @@ abstract class Livro {
     protected int quantidade;
     protected boolean emprestado;
     protected String nomeEmprestimo;
+    protected String tipo;  // Adicionado o atributo tipo
 
-    public Livro(String titulo, String autor, int anoPublicacao, String genero, int quantidade) {
+    public Livro(String titulo, String autor, int anoPublicacao, String genero, int quantidade, String tipo) {
         this.titulo = titulo;
         this.autor = autor;
         this.anoPublicacao = anoPublicacao;
@@ -15,6 +16,7 @@ abstract class Livro {
         this.quantidade = quantidade;
         this.emprestado = false;
         this.nomeEmprestimo = null;
+        this.tipo = tipo;  // Inicializando o atributo tipo
     }
 
     public String getTitulo() {
@@ -45,6 +47,10 @@ abstract class Livro {
         return nomeEmprestimo;
     }
 
+    public String getTipo() {
+        return tipo;  // Método para obter o tipo
+    }
+
     public void registrarEmprestimo(String nomeEmprestimo) {
         if (!emprestado && quantidade > 0) {
             this.emprestado = true;
@@ -68,6 +74,7 @@ abstract class Livro {
                 ", Ano de Publicação: " + anoPublicacao +
                 ", Gênero: " + genero +
                 ", Quantidade: " + quantidade +
+                ", Tipo: " + tipo + 
                 ", Emprestado: " + (emprestado ? "Sim" : "Não") +
                 (emprestado ? ", Nome do Empréstimo: " + nomeEmprestimo : "");
     }

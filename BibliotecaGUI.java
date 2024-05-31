@@ -18,6 +18,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
 import javafx.scene.layout.BorderPane;
@@ -187,11 +188,8 @@ public class BibliotecaGUI extends Application {
         // ComboBox para selecionar o título do livro
         ComboBox<String> titleComboBox = new ComboBox<>();
         for (Livro livro : biblioteca) {
-            titleComboBox.getItems().add(livro.getTitulo());
+            titleComboBox.getItems().add(livro.getTitulo() + " (" + livro.getTipo() + ")");
         }
-        Label typeLabel = new Label("Tipo:");
-        ComboBox<String> typeComboBox = new ComboBox<>();
-        typeComboBox.getItems().addAll("Físico", "Digital", "Ambos");
     
         // Botão para remover o livro
         ButtonType removeButton = new ButtonType("Remover", ButtonBar.ButtonData.OK_DONE);
@@ -199,27 +197,29 @@ public class BibliotecaGUI extends Application {
         
         // Layout do conteúdo do diálogo
         VBox content = new VBox(10);
-        content.getChildren().addAll(new Label("Título:"), titleComboBox, typeLabel, typeComboBox);
+        content.getChildren().addAll(new Label("Título e Tipo:"), titleComboBox);
         content.setPadding(new Insets(10));
         dialog.getDialogPane().setContent(content);
     
         // Conversor de resultado do diálogo
         dialog.setResultConverter(dialogButton -> {
             if (dialogButton == removeButton) {
-                String title = titleComboBox.getValue();
-                String type = typeComboBox.getValue();
-                biblioteca.removeIf(livro -> livro.getTitulo().equals(title) && (
-                        type.equals("Ambos") ||
-                        (type.equals("Físico") && livro instanceof LivroFisico) ||
-                        (type.equals("Digital") && livro instanceof LivroDigital)
-                ));
-                return "removido";
+                String selectedItem = titleComboBox.getValue();
+                if (selectedItem != null) {
+                    String[] parts = selectedItem.split(" \\(");
+                    String title = parts[0];
+                    String type = parts[1].substring(0, parts[1].length() - 1); // Remove the closing parenthesis
+    
+                    biblioteca.removeIf(livro -> livro.getTitulo().equals(title) && livro.getTipo().equals(type));
+                    return "removido";
+                }
             }
             return null;
         });
     
         dialog.showAndWait();
     }
+    
 
     private void pesquisarLivro(Stage stage) {
         // Diálogo para pesquisar um livro
@@ -230,12 +230,8 @@ public class BibliotecaGUI extends Application {
         // ComboBox para selecionar o título do livro
         ComboBox<String> titleComboBox = new ComboBox<>();
         for (Livro livro : biblioteca) {
-            titleComboBox.getItems().add(livro.getTitulo());
+            titleComboBox.getItems().add(livro.getTitulo() + " (" + livro.getTipo() + ")");
         }
-    
-        Label typeLabel = new Label("Tipo:");
-        ComboBox<String> typeComboBox = new ComboBox<>();
-        typeComboBox.getItems().addAll("Físico", "Digital", "Ambos");
     
         // Botão para pesquisar o livro
         ButtonType searchButton = new ButtonType("Pesquisar", ButtonBar.ButtonData.OK_DONE);
@@ -243,48 +239,51 @@ public class BibliotecaGUI extends Application {
     
         // Layout do conteúdo do diálogo
         VBox content = new VBox(10);
-        content.getChildren().addAll(new Label("Título:"), titleComboBox, typeLabel, typeComboBox);
+        content.getChildren().addAll(new Label("Título e Tipo:"), titleComboBox);
         content.setPadding(new Insets(10));
         dialog.getDialogPane().setContent(content);
     
         // Conversor de resultado do diálogo
         dialog.setResultConverter(dialogButton -> {
             if (dialogButton == searchButton) {
-                String title = titleComboBox.getValue();
-                String type = typeComboBox.getValue();
-                List<Livro> livrosEncontrados = new ArrayList<>();
-                for (Livro livro : biblioteca) {
-                    if (livro.getTitulo().equals(title) && (
-                            type.equals("Ambos") ||
-                            (type.equals("Físico") && livro instanceof LivroFisico) ||
-                            (type.equals("Digital") && livro instanceof LivroDigital)
-                    )) {
-                        livrosEncontrados.add(livro);
+                String selectedItem = titleComboBox.getValue();
+                if (selectedItem != null) {
+                    String[] parts = selectedItem.split(" \\(");
+                    String title = parts[0];
+                    String type = parts[1].substring(0, parts[1].length() - 1); // Remove the closing parenthesis
+    
+                    List<Livro> livrosEncontrados = new ArrayList<>();
+                    for (Livro livro : biblioteca) {
+                        if (livro.getTitulo().equals(title) && livro.getTipo().equals(type)) {
+                            livrosEncontrados.add(livro);
+                        }
                     }
-                }
-                // Alerta com os resultados da pesquisa
-                Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                if (livrosEncontrados.isEmpty()) {
-                    alert.setTitle("Livro Não Encontrado");
-                    alert.setHeaderText(null);
-                    alert.setContentText("Livro não encontrado na biblioteca.");
-                } else {
-                    alert.setTitle("Livros Encontrados");
-                    alert.setHeaderText(null);
-                    StringBuilder contentText = new StringBuilder();
-                    for (Livro livro : livrosEncontrados) {
-                        contentText.append(livro.toString()).append("\n");
+    
+                    // Alerta com os resultados da pesquisa
+                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                    if (livrosEncontrados.isEmpty()) {
+                        alert.setTitle("Livro Não Encontrado");
+                        alert.setHeaderText(null);
+                        alert.setContentText("Livro não encontrado na biblioteca.");
+                    } else {
+                        alert.setTitle("Livros Encontrados");
+                        alert.setHeaderText(null);
+                        StringBuilder contentText = new StringBuilder();
+                        for (Livro livro : livrosEncontrados) {
+                            contentText.append(livro.toString()).append("\n");
+                        }
+                        alert.setContentText(contentText.toString());
                     }
-                    alert.setContentText(contentText.toString());
+                    alert.showAndWait();
+                    return "pesquisado";
                 }
-                alert.showAndWait();
-                return "pesquisado";
             }
             return null;
         });
     
         dialog.showAndWait();
     }
+    
     
 
     private void gerenciarEmprestimos(Stage stage) {
@@ -308,7 +307,7 @@ public class BibliotecaGUI extends Application {
                 Label bookLabel = new Label("Livro:");
                 ComboBox<String> bookComboBox = new ComboBox<>();
                 for (Livro livro : biblioteca) {
-                    bookComboBox.getItems().add(livro.getTitulo());
+                    bookComboBox.getItems().add(livro.getTitulo() + " (" + livro.getTipo() + ")");
                 }
     
                 Label dateLabel = new Label("Data de Empréstimo:");
@@ -356,7 +355,7 @@ public class BibliotecaGUI extends Application {
                 Label bookLabel = new Label("Livro:");
                 ComboBox<String> bookComboBox = new ComboBox<>();
                 for (Livro livro : biblioteca) {
-                    bookComboBox.getItems().add(livro.getTitulo());
+                    bookComboBox.getItems().add(livro.getTitulo() + " (" + livro.getTipo() + ")");
                 }
     
                 Label dateLabel = new Label("Data de Devolução:");
@@ -414,13 +413,33 @@ public class BibliotecaGUI extends Application {
     
 
     private void categorizarLivros(Stage stage) {
-        // Diálogo para categorizar livros
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Categorizar Livros");
-        alert.setHeaderText(null);
-        alert.setContentText("Esta funcionalidade ainda não foi implementada.");
-        alert.showAndWait();
+    // Diálogo para categorizar livros
+    Dialog<Void> dialog = new Dialog<>();
+    dialog.setTitle("Categorizar Livros");
+    dialog.setHeaderText("Lista de Livros na Biblioteca:");
+
+    // TextArea para exibir as informações dos livros
+    TextArea textArea = new TextArea();
+    textArea.setEditable(false);
+
+    // Adicionar informações dos livros ao TextArea
+    StringBuilder sb = new StringBuilder();
+    for (Livro livro : biblioteca) {
+        sb.append(livro.toString()).append("\n");
     }
+    textArea.setText(sb.toString());
+
+    // Layout do diálogo
+    VBox content = new VBox(10);
+    content.getChildren().add(textArea);
+    dialog.getDialogPane().setContent(content);
+
+    ButtonType closeButton = new ButtonType("Fechar", ButtonBar.ButtonData.CANCEL_CLOSE);
+    dialog.getDialogPane().getButtonTypes().add(closeButton);
+
+    dialog.showAndWait();
+}
+
     
     public static void main(String[] args) {
         launch(args);
