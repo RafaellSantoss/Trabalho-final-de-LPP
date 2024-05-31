@@ -19,6 +19,7 @@ import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TextFormatter;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
@@ -86,39 +87,61 @@ public class BibliotecaGUI extends Application {
         // Diálogo para adicionar um novo livro
         Dialog<String> dialog = new Dialog<>();
         dialog.setTitle("Adicionar Livro");
-        dialog.setHeaderText("Digite os detalhes do livro:");
-
+        dialog.setHeaderText("Introduza os Detalhes do Livro:");
+    
         // Campos para inserir os detalhes do livro
         Label titleLabel = new Label("Título:");
         TextField titleField = new TextField();
-
+        titleField.setPromptText("Introduza o Título do Livro");
+    
         Label authorLabel = new Label("Autor:");
         TextField authorField = new TextField();
-
+        authorField.setPromptText("Introduza o Nome do Autor");
+    
         Label yearLabel = new Label("Ano de Publicação:");
         TextField yearField = new TextField();
-
+        yearField.setPromptText("Apenas caracteres numéricos");
+    
+        // Restrição para permitir apenas números no campo de ano de publicação
+        yearField.setTextFormatter(new TextFormatter<>(change -> {
+            String newText = change.getControlNewText();
+            if (newText.matches("\\d*")) {
+                return change;
+            }
+            return null;
+        }));
+    
         Label genreLabel = new Label("Gênero:");
         ComboBox<String> genreComboBox = new ComboBox<>();
         genreComboBox.getItems().addAll("Ação", "Romance", "Terror", "Poesia", "Mistério");
-
+    
         Label typeLabel = new Label("Tipo:");
         ComboBox<String> typeComboBox = new ComboBox<>();
         typeComboBox.getItems().addAll("Físico", "Digital", "Ambos");
-
+    
         Label quantityLabel = new Label("Quantidade:");
         TextField quantityField = new TextField();
-
+        quantityField.setPromptText("Apenas caracteres numéricos");
+    
+        // Restrição para permitir apenas números no campo de quantidade
+        quantityField.setTextFormatter(new TextFormatter<>(change -> {
+            String newText = change.getControlNewText();
+            if (newText.matches("\\d*")) {
+                return change;
+            }
+            return null;
+        }));
+    
         // Botão para adicionar o livro
         ButtonType addButton = new ButtonType("Adicionar", ButtonBar.ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().addAll(addButton, ButtonType.CANCEL);
-
+    
         // Layout do conteúdo do diálogo
         VBox content = new VBox(10);
         content.getChildren().addAll(titleLabel, titleField, authorLabel, authorField, yearLabel, yearField, genreLabel, genreComboBox, typeLabel, typeComboBox, quantityLabel, quantityField);
         content.setPadding(new Insets(10));
         dialog.getDialogPane().setContent(content);
-
+    
         // Conversor de resultado do diálogo
         dialog.setResultConverter(dialogButton -> {
             if (dialogButton == addButton) {
@@ -149,35 +172,41 @@ public class BibliotecaGUI extends Application {
             }
             return null;
         });
-
+    
         dialog.showAndWait();
     }
+    
+    
 
     private void removerLivro(Stage stage) {
         // Diálogo para remover um livro
         Dialog<String> dialog = new Dialog<>();
         dialog.setTitle("Remover Livro");
-        dialog.setHeaderText("Digite o título do livro que deseja remover:");
-
-        // Campo para inserir o título do livro
-        TextField titleField = new TextField();
+        dialog.setHeaderText("Selecione o título do livro que deseja remover:");
+    
+        // ComboBox para selecionar o título do livro
+        ComboBox<String> titleComboBox = new ComboBox<>();
+        for (Livro livro : biblioteca) {
+            titleComboBox.getItems().add(livro.getTitulo());
+        }
         Label typeLabel = new Label("Tipo:");
         ComboBox<String> typeComboBox = new ComboBox<>();
         typeComboBox.getItems().addAll("Físico", "Digital", "Ambos");
-
+    
         // Botão para remover o livro
         ButtonType removeButton = new ButtonType("Remover", ButtonBar.ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().addAll(removeButton, ButtonType.CANCEL);
+        
         // Layout do conteúdo do diálogo
         VBox content = new VBox(10);
-        content.getChildren().addAll(new Label("Título:"), titleField, typeLabel, typeComboBox);
+        content.getChildren().addAll(new Label("Título:"), titleComboBox, typeLabel, typeComboBox);
         content.setPadding(new Insets(10));
         dialog.getDialogPane().setContent(content);
-
+    
         // Conversor de resultado do diálogo
         dialog.setResultConverter(dialogButton -> {
             if (dialogButton == removeButton) {
-                String title = titleField.getText();
+                String title = titleComboBox.getValue();
                 String type = typeComboBox.getValue();
                 biblioteca.removeIf(livro -> livro.getTitulo().equals(title) && (
                         type.equals("Ambos") ||
@@ -188,7 +217,7 @@ public class BibliotecaGUI extends Application {
             }
             return null;
         });
-
+    
         dialog.showAndWait();
     }
 
@@ -196,28 +225,32 @@ public class BibliotecaGUI extends Application {
         // Diálogo para pesquisar um livro
         Dialog<String> dialog = new Dialog<>();
         dialog.setTitle("Pesquisar Livro");
-        dialog.setHeaderText("Digite o título do livro que deseja pesquisar:");
-
-        // Campos para inserir o título e tipo do livro
-        TextField titleField = new TextField();
+        dialog.setHeaderText("Selecione o título do livro que deseja pesquisar:");
+    
+        // ComboBox para selecionar o título do livro
+        ComboBox<String> titleComboBox = new ComboBox<>();
+        for (Livro livro : biblioteca) {
+            titleComboBox.getItems().add(livro.getTitulo());
+        }
+    
         Label typeLabel = new Label("Tipo:");
         ComboBox<String> typeComboBox = new ComboBox<>();
         typeComboBox.getItems().addAll("Físico", "Digital", "Ambos");
-
+    
         // Botão para pesquisar o livro
         ButtonType searchButton = new ButtonType("Pesquisar", ButtonBar.ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().addAll(searchButton, ButtonType.CANCEL);
-
+    
         // Layout do conteúdo do diálogo
         VBox content = new VBox(10);
-        content.getChildren().addAll(new Label("Título:"), titleField, typeLabel, typeComboBox);
+        content.getChildren().addAll(new Label("Título:"), titleComboBox, typeLabel, typeComboBox);
         content.setPadding(new Insets(10));
         dialog.getDialogPane().setContent(content);
-
+    
         // Conversor de resultado do diálogo
         dialog.setResultConverter(dialogButton -> {
             if (dialogButton == searchButton) {
-                String title = titleField.getText();
+                String title = titleComboBox.getValue();
                 String type = typeComboBox.getValue();
                 List<Livro> livrosEncontrados = new ArrayList<>();
                 for (Livro livro : biblioteca) {
@@ -249,99 +282,136 @@ public class BibliotecaGUI extends Application {
             }
             return null;
         });
-
+    
         dialog.showAndWait();
     }
+    
 
     private void gerenciarEmprestimos(Stage stage) {
         // Diálogo para gerenciar empréstimos
         ChoiceDialog<String> dialog = new ChoiceDialog<>("Registrar Empréstimo", "Registrar Empréstimo", "Devolver Livro");
         dialog.setTitle("Gerenciar Empréstimos");
         dialog.setHeaderText("Escolha uma opção:");
-
+    
         Optional<String> result = dialog.showAndWait();
-        result.ifPresent(option-> {
+        result.ifPresent(option -> {
             if (option.equals("Registrar Empréstimo")) {
                 // Implementação do registro de empréstimo
                 Dialog<String> emprestimoDialog = new Dialog<>();
                 emprestimoDialog.setTitle("Registrar Empréstimo");
                 emprestimoDialog.setHeaderText("Digite os detalhes do empréstimo:");
-
+    
                 // Campos para inserir os detalhes do empréstimo
                 Label userLabel = new Label("Usuário:");
                 TextField userField = new TextField();
-
+    
                 Label bookLabel = new Label("Livro:");
                 ComboBox<String> bookComboBox = new ComboBox<>();
                 for (Livro livro : biblioteca) {
                     bookComboBox.getItems().add(livro.getTitulo());
                 }
-
+    
                 Label dateLabel = new Label("Data de Empréstimo:");
                 DatePicker datePicker = new DatePicker();
-
+    
                 ButtonType confirmButton = new ButtonType("Confirmar", ButtonBar.ButtonData.OK_DONE);
                 emprestimoDialog.getDialogPane().getButtonTypes().addAll(confirmButton, ButtonType.CANCEL);
-
+    
                 VBox content = new VBox(10);
                 content.getChildren().addAll(userLabel, userField, bookLabel, bookComboBox, dateLabel, datePicker);
                 content.setPadding(new Insets(10));
                 emprestimoDialog.getDialogPane().setContent(content);
-
+    
                 emprestimoDialog.setResultConverter(dialogButton -> {
                     if (dialogButton == confirmButton) {
                         String user = userField.getText();
                         String bookTitle = bookComboBox.getValue();
                         LocalDate date = datePicker.getValue();
                         // Lógica para registrar o empréstimo
+                        registrarEmprestimo(user, bookTitle, date);
+    
+                        // Mostrar pop-up de confirmação
+                        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                        alert.setTitle("Empréstimo Registrado");
+                        alert.setHeaderText(null);
+                        alert.setContentText("O empréstimo foi registrado com sucesso!");
+                        alert.showAndWait();
+    
                         return "emprestado";
                     }
                     return null;
                 });
-
+    
                 emprestimoDialog.showAndWait();
             } else if (option.equals("Devolver Livro")) {
                 // Implementação da devolução de livro
                 Dialog<String> devolucaoDialog = new Dialog<>();
                 devolucaoDialog.setTitle("Devolver Livro");
                 devolucaoDialog.setHeaderText("Digite os detalhes da devolução:");
-
+    
                 // Campos para inserir os detalhes da devolução
                 Label userLabel = new Label("Usuário:");
                 TextField userField = new TextField();
-
+    
                 Label bookLabel = new Label("Livro:");
                 ComboBox<String> bookComboBox = new ComboBox<>();
                 for (Livro livro : biblioteca) {
                     bookComboBox.getItems().add(livro.getTitulo());
                 }
-
+    
                 Label dateLabel = new Label("Data de Devolução:");
                 DatePicker datePicker = new DatePicker();
-
+    
                 ButtonType confirmButton = new ButtonType("Confirmar", ButtonBar.ButtonData.OK_DONE);
                 devolucaoDialog.getDialogPane().getButtonTypes().addAll(confirmButton, ButtonType.CANCEL);
-
+    
                 VBox content = new VBox(10);
                 content.getChildren().addAll(userLabel, userField, bookLabel, bookComboBox, dateLabel, datePicker);
                 content.setPadding(new Insets(10));
                 devolucaoDialog.getDialogPane().setContent(content);
-
+    
                 devolucaoDialog.setResultConverter(dialogButton -> {
                     if (dialogButton == confirmButton) {
                         String user = userField.getText();
                         String bookTitle = bookComboBox.getValue();
                         LocalDate date = datePicker.getValue();
                         // Lógica para devolver o livro
+                        devolverLivro(user, bookTitle, date);
+    
+                        // Mostrar pop-up de confirmação
+                        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                        alert.setTitle("Devolução Registrada");
+                        alert.setHeaderText(null);
+                        alert.setContentText("A devolução foi registrada com sucesso!");
+                        alert.showAndWait();
+    
                         return "devolvido";
                     }
                     return null;
                 });
-
+    
                 devolucaoDialog.showAndWait();
             }
         });
     }
+    
+    // Métodos fictícios para registrar empréstimo e devolução
+    private void registrarEmprestimo(String user, String bookTitle, LocalDate date) {
+        // Implementação do registro de empréstimo
+        // Exemplo:
+        // Emprestimo emprestimo = new Emprestimo(user, bookTitle, date);
+        // listaEmprestimos.add(emprestimo);
+    }
+    
+    private void devolverLivro(String user, String bookTitle, LocalDate date) {
+        // Implementação da devolução de livro
+        // Exemplo:
+        // Emprestimo emprestimo = encontrarEmprestimo(user, bookTitle);
+        // if (emprestimo != null) {
+        //     listaEmprestimos.remove(emprestimo);
+        // }
+    }
+    
 
     private void categorizarLivros(Stage stage) {
         // Diálogo para categorizar livros
