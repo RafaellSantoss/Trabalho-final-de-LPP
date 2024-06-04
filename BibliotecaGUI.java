@@ -47,13 +47,13 @@ public class BibliotecaGUI extends Application {
         removerMenuItem.setOnAction(e -> removerLivro(primaryStage));
         MenuItem pesquisarMenuItem = new MenuItem("Pesquisar Livro");
         pesquisarMenuItem.setOnAction(e -> pesquisarLivro(primaryStage));
-        MenuItem gerenciarMenuItem = new MenuItem("Gerenciar Empréstimos");
-        gerenciarMenuItem.setOnAction(e -> gerenciarEmprestimos(primaryStage));
+        MenuItem gerirMenuItem = new MenuItem("Gerir Empréstimos");
+        gerirMenuItem.setOnAction(e -> gerirEmprestimos(primaryStage));
         MenuItem categorizarMenuItem = new MenuItem("Categorizar Livros");
         categorizarMenuItem.setOnAction(e -> categorizarLivros(primaryStage));
 
         // Adiciona os itens de menu ao menu principal
-        menu.getItems().addAll(adicionarMenuItem, removerMenuItem, pesquisarMenuItem, gerenciarMenuItem, categorizarMenuItem);
+        menu.getItems().addAll(adicionarMenuItem, removerMenuItem, pesquisarMenuItem, gerirMenuItem, categorizarMenuItem);
         menuBar.getMenus().add(menu); // Adiciona o menu à barra de menu
         root.setTop(menuBar); // Define a barra de menu como o componente superior do layout
 
@@ -74,16 +74,16 @@ public class BibliotecaGUI extends Application {
         pesquisarButton.setOnAction(e -> pesquisarLivro(primaryStage));
         pesquisarButton.getStyleClass().add("button");
 
-        Button gerenciarEmprestimosButton = new Button("Gerenciar Empréstimos");
-        gerenciarEmprestimosButton.setOnAction(e -> gerenciarEmprestimos(primaryStage));
-        gerenciarEmprestimosButton.getStyleClass().add("button");
+        Button gerirEmprestimosButton = new Button("Gerir Empréstimos");
+        gerirEmprestimosButton.setOnAction(e -> gerirEmprestimos(primaryStage));
+        gerirEmprestimosButton.getStyleClass().add("button");
 
         Button categorizarButton = new Button("Categorizar Livros");
         categorizarButton.setOnAction(e -> categorizarLivros(primaryStage));
         categorizarButton.getStyleClass().add("button");
 
         // Adiciona os botões ao VBox
-        buttonsBox.getChildren().addAll(adicionarButton, removerButton, pesquisarButton, gerenciarEmprestimosButton, categorizarButton);
+        buttonsBox.getChildren().addAll(adicionarButton, removerButton, pesquisarButton, gerirEmprestimosButton, categorizarButton);
         root.setCenter(buttonsBox); // Define o VBox como o componente central do layout
 
         // Configuração da cena principal
@@ -317,10 +317,10 @@ public class BibliotecaGUI extends Application {
     }
     
 
-private void gerenciarEmprestimos(Stage stage) {
-    // Diálogo para gerenciar empréstimos
+private void gerirEmprestimos(Stage stage) {
+    // Diálogo para gerir empréstimos
     ChoiceDialog<String> dialog = new ChoiceDialog<>("Registrar Empréstimo", "Registrar Empréstimo", "Devolver Livro");
-    dialog.setTitle("Gerenciar Empréstimos");
+    dialog.setTitle("Gerir Empréstimos");
     dialog.setHeaderText("Escolha uma opção:");
 
     Optional<String> result = dialog.showAndWait();
@@ -369,6 +369,7 @@ private void gerenciarEmprestimos(Stage stage) {
                     alert.setHeaderText(null);
                     alert.setContentText("O empréstimo foi registrado com sucesso!");
                     alert.showAndWait();
+                    
 
                     return "emprestado";
                 }
