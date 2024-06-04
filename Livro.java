@@ -42,6 +42,9 @@ abstract class Livro {
         return quantidade; // Retorna a quantidade de exemplares disponíveis
     }
 
+    public void setQuantidade(int newValue) {
+        this.quantidade = newValue;    }
+
     public boolean isEmprestado() {
         return emprestado; // Retorna se o livro está emprestado ou não
     }

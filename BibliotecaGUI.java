@@ -27,6 +27,7 @@ import javafx.scene.layout.VBox; // Importação da classe VBox para criar layou
 import javafx.stage.Stage; // Importação da classe Stage para representar uma janela de aplicativo
 
 
+
 public class BibliotecaGUI extends Application {
     private List<Livro> biblioteca = new ArrayList<>(); // Lista para armazenar os livros da biblioteca
 
@@ -36,26 +37,7 @@ public class BibliotecaGUI extends Application {
         BorderPane root = new BorderPane();
         root.setPadding(new Insets(10)); // Adiciona um espaço de preenchimento de 10 pixels em todos os lados do layout
 
-        // Criação da barra de menu
-        MenuBar menuBar = new MenuBar();
-        Menu menu = new Menu("Opções");
-
-        // Criação dos itens de menu e atribuição de ações aos eventos
-        MenuItem adicionarMenuItem = new MenuItem("Adicionar Livro");
-        adicionarMenuItem.setOnAction(e -> adicionarLivro(primaryStage));
-        MenuItem removerMenuItem = new MenuItem("Remover Livro");
-        removerMenuItem.setOnAction(e -> removerLivro(primaryStage));
-        MenuItem pesquisarMenuItem = new MenuItem("Pesquisar Livro");
-        pesquisarMenuItem.setOnAction(e -> pesquisarLivro(primaryStage));
-        MenuItem gerirMenuItem = new MenuItem("Gerir Empréstimos");
-        gerirMenuItem.setOnAction(e -> gerirEmprestimos(primaryStage));
-        MenuItem categorizarMenuItem = new MenuItem("Categorizar Livros");
-        categorizarMenuItem.setOnAction(e -> categorizarLivros(primaryStage));
-
-        // Adiciona os itens de menu ao menu principal
-        menu.getItems().addAll(adicionarMenuItem, removerMenuItem, pesquisarMenuItem, gerirMenuItem, categorizarMenuItem);
-        menuBar.getMenus().add(menu); // Adiciona o menu à barra de menu
-        root.setTop(menuBar); // Define a barra de menu como o componente superior do layout
+        
 
         // Configuração do layout dos botões
         VBox buttonsBox = new VBox(10); // VBox para organizar os botões verticalmente, com um espaço de 10 pixels entre eles
@@ -81,13 +63,17 @@ public class BibliotecaGUI extends Application {
         Button categorizarButton = new Button("Categorizar Livros");
         categorizarButton.setOnAction(e -> categorizarLivros(primaryStage));
         categorizarButton.getStyleClass().add("button");
+        
+        Button compararButton = new Button("Comparar Livros");
+        compararButton.setOnAction(e -> compararLivros(primaryStage));
+        compararButton.getStyleClass().add("button");
 
         // Adiciona os botões ao VBox
-        buttonsBox.getChildren().addAll(adicionarButton, removerButton, pesquisarButton, gerirEmprestimosButton, categorizarButton);
+        buttonsBox.getChildren().addAll(adicionarButton, removerButton, pesquisarButton, gerirEmprestimosButton, categorizarButton,compararButton);
         root.setCenter(buttonsBox); // Define o VBox como o componente central do layout
 
         // Configuração da cena principal
-        Scene scene = new Scene(root, 400, 300); // Cria uma cena com o layout principal, de largura 400 e altura 300
+        Scene scene = new Scene(root, 500, 500); // Cria uma cena com o layout principal, de largura 400 e altura 300
         scene.getStylesheets().add(getClass().getResource("style.css").toExternalForm()); // Adiciona uma folha de estilo CSS à cena
         primaryStage.setTitle("Sistema de Gerenciamento de Biblioteca"); // Define o título da janela
         primaryStage.setScene(scene); // Define a cena como a cena principal da janela
@@ -369,7 +355,7 @@ private void gerirEmprestimos(Stage stage) {
                     alert.setHeaderText(null);
                     alert.setContentText("O empréstimo foi registrado com sucesso!");
                     alert.showAndWait();
-                    
+
 
                     return "emprestado";
                 }
@@ -464,6 +450,68 @@ private void removerLivroDaLista(ComboBox<String> bookComboBox, String bookTitle
 
     ButtonType closeButton = new ButtonType("Fechar", ButtonBar.ButtonData.CANCEL_CLOSE);
     dialog.getDialogPane().getButtonTypes().add(closeButton);
+
+    dialog.showAndWait();
+}
+
+
+// Outros métodos de manipulação de livros
+
+private void compararLivros(Stage stage) {
+    Dialog<String> dialog = new Dialog<>();
+    dialog.setTitle("Comparar Livros");
+    dialog.setHeaderText("Selecione os dois livros que deseja comparar:");
+
+    ComboBox<String> bookComboBox1 = new ComboBox<>();
+    bookComboBox1.setPromptText("Selecione o primeiro livro...");
+    for (Livro livro : biblioteca) {
+        bookComboBox1.getItems().add(livro.getTitulo() + " (" + livro.getTipo() + ")");
+    }
+
+    ComboBox<String> bookComboBox2 = new ComboBox<>();
+    bookComboBox2.setPromptText("Selecione o segundo livro...");
+    for (Livro livro : biblioteca) {
+        bookComboBox2.getItems().add(livro.getTitulo() + " (" + livro.getTipo() + ")");
+    }
+
+    ButtonType compareButton = new ButtonType("Comparar", ButtonBar.ButtonData.OK_DONE);
+    dialog.getDialogPane().getButtonTypes().addAll(compareButton, ButtonType.CANCEL);
+
+    VBox content = new VBox(10);
+    content.getChildren().addAll(new Label("Livro 1:"), bookComboBox1, new Label("Livro 2:"), bookComboBox2);
+    content.setPadding(new Insets(10));
+    dialog.getDialogPane().setContent(content);
+
+    dialog.setResultConverter(dialogButton -> {
+        if (dialogButton == compareButton) {
+            String selectedItem1 = bookComboBox1.getValue();
+            String selectedItem2 = bookComboBox2.getValue();
+            if (selectedItem1 != null && selectedItem2 != null) {
+                String[] parts1 = selectedItem1.split(" \\(");
+                String title1 = parts1[0];
+                String type1 = parts1[1].substring(0, parts1[1].length() - 1);
+
+                String[] parts2 = selectedItem2.split(" \\(");
+                String title2 = parts2[0];
+                String type2 = parts2[1].substring(0, parts2[1].length() - 1);
+
+                Livro livro1 = biblioteca.stream().filter(livro -> livro.getTitulo().equals(title1) && livro.getTipo().equals(type1)).findFirst().orElse(null);
+                Livro livro2 = biblioteca.stream().filter(livro -> livro.getTitulo().equals(title2) && livro.getTipo().equals(type2)).findFirst().orElse(null);
+
+                if (livro1 != null && livro2 != null) {
+                    ComparadorDeLivros comparador = new ComparadorDeLivros(livro1, livro2);
+                    String resultado = comparador.comparar();
+
+                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                    alert.setTitle("Resultado da Comparação");
+                    alert.setHeaderText(null);
+                    alert.setContentText(resultado);
+                    alert.showAndWait();
+                }
+            }
+        }
+        return null;
+    });
 
     dialog.showAndWait();
 }
