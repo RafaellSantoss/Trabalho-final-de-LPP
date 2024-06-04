@@ -2,10 +2,14 @@ import java.time.LocalDate; // Importação da classe LocalDate para lidar com d
 import java.util.ArrayList; // Importação da classe ArrayList para armazenar os livros
 import java.util.List; // Importação da interface List para manipular listas
 import java.util.Optional; // Importação da classe Optional para tratamento de valores opcionais
+
+import javax.swing.JComboBox;
+
 import java.time.Year; // Importação da classe Year para obter o ano atual
 
 import javafx.application.Application; // Importação da classe Application para criar aplicativos JavaFX
 import javafx.geometry.Insets; // Importação da classe Insets para definir margens em layouts
+import javafx.geometry.Pos;
 import javafx.scene.Scene; // Importação da classe Scene para representar uma cena gráfica
 import javafx.scene.control.Alert; // Importação da classe Alert para exibir caixas de diálogo de alerta
 import javafx.scene.control.Button; // Importação da classe Button para criar botões
@@ -13,6 +17,7 @@ import javafx.scene.control.ButtonBar; // Importação da classe ButtonBar para 
 import javafx.scene.control.ButtonType; // Importação da classe ButtonType para definir tipos de botões
 import javafx.scene.control.ChoiceDialog; // Importação da classe ChoiceDialog para exibir uma lista de escolha
 import javafx.scene.control.ComboBox; // Importação da classe ComboBox para criar menus de seleção
+import javafx.scene.control.DateCell;
 import javafx.scene.control.DatePicker; // Importação da classe DatePicker para seleção de datas
 import javafx.scene.control.Dialog; // Importação da classe Dialog para criar diálogos personalizados
 import javafx.scene.control.Label; // Importação da classe Label para criar rótulos
@@ -37,11 +42,9 @@ public class BibliotecaGUI extends Application {
         BorderPane root = new BorderPane();
         root.setPadding(new Insets(10)); // Adiciona um espaço de preenchimento de 10 pixels em todos os lados do layout
 
-        
-
-        // Configuração do layout dos botões
-        VBox buttonsBox = new VBox(10); // VBox para organizar os botões verticalmente, com um espaço de 10 pixels entre eles
-        buttonsBox.setPadding(new Insets(10)); // Adiciona um espaço de preenchimento de 10 pixels em todos os lados do VBox
+        VBox buttonsBox = new VBox(10); // Cria uma VBox com espaçamento de 10 pixels
+        buttonsBox.setPadding(new Insets(10)); // Define um padding de 10 pixels em todos os lados
+        buttonsBox.setAlignment(Pos.TOP_LEFT); // Alinha os filhos da VBox à direita
 
         // Criação dos botões e atribuição de ações aos eventos
         Button adicionarButton = new Button("Adicionar Livro");
@@ -338,14 +341,40 @@ private void gerirEmprestimos(Stage stage) {
             content.setPadding(new Insets(10));
             emprestimoDialog.getDialogPane().setContent(content);
 
+           datePicker.setDayCellFactory(picker -> new DateCell() {
+                @Override
+                public void updateItem(LocalDate date, boolean empty) {
+                    super.updateItem(date, empty);
+                    setDisable(empty || date.compareTo(LocalDate.now()) < 0);
+                }
+            });
+
             emprestimoDialog.setResultConverter(dialogButton -> {
                 if (dialogButton == confirmButton) {
                     String user = userField.getText();
                     String bookTitle = bookComboBox.getValue();
                     LocalDate date = datePicker.getValue();
-                    // Lógica para registrar o empréstimo
-                    registrarEmprestimo(user, bookTitle, date);
 
+                    // Verifica se a data não é antes de hoje
+                    if (date != null && (date.isBefore(LocalDate.now()))) {
+                        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                        // Exibir alguma mensagem de erro ou tratar a inconsistência
+                        alert.setTitle("Por favor, selecione uma data válida.");
+                        alert.showAndWait();
+                        return null;
+                    }
+
+        // Lógica para registrar o empréstimo
+        registrarEmprestimo(user, bookTitle, date);
+        
+        for(Livro livro : biblioteca) {
+            String valorSelecionado = String.valueOf(bookComboBox.getValue());
+        
+            if(valorSelecionado.equals(livro.getTitulo())) {
+                livro.setQuantidade(livro.getQuantidade() - 1);
+                break; // Sai do loop depois de encontrar e atualizar o livro certo
+            }
+        }
                     // Remover o livro da lista de categorias
                     removerLivroDaLista(bookComboBox, bookTitle);
 
