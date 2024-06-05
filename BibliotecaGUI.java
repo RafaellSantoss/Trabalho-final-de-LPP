@@ -1,3 +1,9 @@
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.time.LocalDate; // Importação da classe LocalDate para lidar com datas
 import java.util.ArrayList; // Importação da classe ArrayList para armazenar os livros
 import java.util.List; // Importação da interface List para manipular listas
@@ -35,9 +41,40 @@ import javafx.stage.Stage; // Importação da classe Stage para representar uma 
 
 public class BibliotecaGUI extends Application {
     private List<Livro> biblioteca = new ArrayList<>(); // Lista para armazenar os livros da biblioteca
+    
+
+    @Override
+    public void stop() {
+        salvarDados(); // aqui chamas a funcao que guarda a lista Biblioteca no ficheiro de texto
+    }
+
+    private void salvarDados() {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter("DADOS.txt"))) {
+            for (Livro livro : biblioteca) {
+                writer.write(livro.toString());
+                writer.newLine();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     @Override
     public void start(Stage primaryStage) {
+
+        File file = new File("DADOS.txt");
+        if (file.exists()) {
+            try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    Livro livro = Livro.fromString(line);
+                    biblioteca.add(livro);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
         // Configuração do layout principal usando BorderPane
         BorderPane root = new BorderPane();
         root.setPadding(new Insets(10)); // Adiciona um espaço de preenchimento de 10 pixels em todos os lados do layout
@@ -306,153 +343,192 @@ public class BibliotecaGUI extends Application {
     }
     
 
-private void gerirEmprestimos(Stage stage) {
-    // Diálogo para gerir empréstimos
-    ChoiceDialog<String> dialog = new ChoiceDialog<>("Registrar Empréstimo", "Registrar Empréstimo", "Devolver Livro");
-    dialog.setTitle("Gerir Empréstimos");
-    dialog.setHeaderText("Escolha uma opção:");
-
-    Optional<String> result = dialog.showAndWait();
-    result.ifPresent(option -> {
-        if (option.equals("Registrar Empréstimo")) {
-            // Implementação do registro de empréstimo
-            Dialog<String> emprestimoDialog = new Dialog<>();
-            emprestimoDialog.setTitle("Registrar Empréstimo");
-            emprestimoDialog.setHeaderText("Digite os detalhes do empréstimo:");
-
-            // Campos para inserir os detalhes do empréstimo
-            Label userLabel = new Label("Utilizador:");
-            TextField userField = new TextField();
-
-            Label bookLabel = new Label("Livro:");
-            ComboBox<String> bookComboBox = new ComboBox<>();
-            for (Livro livro : biblioteca) {
-                bookComboBox.getItems().add(livro.getTitulo() + " (" + livro.getTipo() + ")");
-            }
-
-            Label dateLabel = new Label("Data de Empréstimo:");
-            DatePicker datePicker = new DatePicker();
-
-            ButtonType confirmButton = new ButtonType("Confirmar", ButtonBar.ButtonData.OK_DONE);
-            emprestimoDialog.getDialogPane().getButtonTypes().addAll(confirmButton, ButtonType.CANCEL);
-
-            VBox content = new VBox(10);
-            content.getChildren().addAll(userLabel, userField, bookLabel, bookComboBox, dateLabel, datePicker);
-            content.setPadding(new Insets(10));
-            emprestimoDialog.getDialogPane().setContent(content);
-
-           datePicker.setDayCellFactory(picker -> new DateCell() {
-                @Override
-                public void updateItem(LocalDate date, boolean empty) {
-                    super.updateItem(date, empty);
-                    setDisable(empty || date.compareTo(LocalDate.now()) < 0);
-                }
-            });
-
-            emprestimoDialog.setResultConverter(dialogButton -> {
-                if (dialogButton == confirmButton) {
-                    String user = userField.getText();
-                    String bookTitle = bookComboBox.getValue();
-                    LocalDate date = datePicker.getValue();
-
-                    // Verifica se a data não é antes de hoje
-                    if (date != null && (date.isBefore(LocalDate.now()))) {
-                        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                        // Exibir alguma mensagem de erro ou tratar a inconsistência
-                        alert.setTitle("Por favor, selecione uma data válida.");
-                        alert.showAndWait();
-                        return null;
+    private void gerirEmprestimos(Stage stage) {
+        // Diálogo para gerir empréstimos
+        ChoiceDialog<String> dialog = new ChoiceDialog<>("Registrar Empréstimo", "Registrar Empréstimo", "Devolver Livro");
+        dialog.setTitle("Gerir Empréstimos");
+        dialog.setHeaderText("Escolha uma opção:");
+    
+        Optional<String> result = dialog.showAndWait();
+        result.ifPresent(option -> {
+            if (option.equals("Registrar Empréstimo")) {
+                // Implementação do registro de empréstimo
+                Dialog<String> emprestimoDialog = new Dialog<>();
+                emprestimoDialog.setTitle("Registrar Empréstimo");
+                emprestimoDialog.setHeaderText("Digite os detalhes do empréstimo:");
+    
+                // Campos para inserir os detalhes do empréstimo
+                Label userLabel = new Label("Utilizador:");
+                TextField userField = new TextField();
+    
+                Label bookLabel = new Label("Livro:");
+                ComboBox<String> bookComboBox = new ComboBox<>();
+                for (Livro livro : biblioteca) {
+                    if (livro.getQuantidade() > 0) {
+                        bookComboBox.getItems().add(livro.getTitulo() + " (" + livro.getTipo() + ")");
                     }
+                }
+    
+                Label dateLabel = new Label("Data de Empréstimo:");
+                DatePicker datePicker = new DatePicker();
+    
+                ButtonType confirmButton = new ButtonType("Confirmar", ButtonBar.ButtonData.OK_DONE);
+                emprestimoDialog.getDialogPane().getButtonTypes().addAll(confirmButton, ButtonType.CANCEL);
+    
+                VBox content = new VBox(10);
+                content.getChildren().addAll(userLabel, userField, bookLabel, bookComboBox, dateLabel, datePicker);
+                content.setPadding(new Insets(10));
+                emprestimoDialog.getDialogPane().setContent(content);
+    
+                datePicker.setDayCellFactory(picker -> new DateCell() {
+                    @Override
+                    public void updateItem(LocalDate date, boolean empty) {
+                        super.updateItem(date, empty);
+                        setDisable(empty || date.compareTo(LocalDate.now()) < 0);
+                    }
+                });
+    
+                emprestimoDialog.setResultConverter(dialogButton -> {
+                    if (dialogButton == confirmButton) {
+                        String user = userField.getText();
+                        String bookTitle = bookComboBox.getValue();
+                        LocalDate date = datePicker.getValue();
+    
+                        // Verifica se a data não é antes de hoje
+                        if (date != null && (date.isBefore(LocalDate.now()))) {
+                            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                            alert.setTitle("Data inválida");
+                            alert.setContentText("Por favor, selecione uma data válida.");
+                            alert.showAndWait();
+                            return null;
+                        }
+    
+                        // Lógica para registrar o empréstimo
+                        for (Livro livro : biblioteca) {
+                            if ((livro.getTitulo() + " (" + livro.getTipo() + ")").equals(bookTitle)) {
+                                if (livro.getQuantidade() > 0) {
+                                    livro.registrarEmprestimo(user);
 
-        // Lógica para registrar o empréstimo
-        registrarEmprestimo(user, bookTitle, date);
-        
-        for(Livro livro : biblioteca) {
-            String valorSelecionado = String.valueOf(bookComboBox.getValue());
-        
-            if(valorSelecionado.equals(livro.getTitulo())) {
-                livro.setQuantidade(livro.getQuantidade() - 1);
-                break; // Sai do loop depois de encontrar e atualizar o livro certo
+                                    if (livro.getQuantidade() == 0) {
+                                        bookComboBox.getItems().remove(bookTitle);
+                                    }
+                                    break;
+                                } else {
+                                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                                    alert.setTitle("Empréstimo Falhou");
+                                    alert.setContentText("Livro não disponível para empréstimo.");
+                                    alert.showAndWait();
+                                    return null;
+                                }
+                            }
+                        }
+    
+                        // Mostrar pop-up de confirmação
+                        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                        alert.setTitle("Empréstimo Registrado");
+                        alert.setHeaderText(null);
+                        alert.setContentText("O empréstimo foi registrado com sucesso!");
+                        alert.showAndWait();
+    
+                        return "emprestado";
+                    }
+                    return null;
+                });
+    
+                emprestimoDialog.showAndWait();
+            } else if (option.equals("Devolver Livro")) {
+                // Implementação da devolução de livro
+                Dialog<String> devolucaoDialog = new Dialog<>();
+                devolucaoDialog.setTitle("Devolver Livro");
+                devolucaoDialog.setHeaderText("Digite os detalhes da devolução:");
+    
+                // Campos para inserir os detalhes da devolução
+                Label userLabel = new Label("Utilizador:");
+                TextField userField = new TextField();
+    
+                Label bookLabel = new Label("Livro:");
+                ComboBox<String> bookComboBox = new ComboBox<>();
+                for (Livro livro : biblioteca) {
+                    if (livro.isEmprestado()) {
+                        bookComboBox.getItems().add(livro.getTitulo() + " (" + livro.getTipo() + ")");
+                    }
+                }
+    
+                ButtonType confirmButton = new ButtonType("Confirmar", ButtonBar.ButtonData.OK_DONE);
+                devolucaoDialog.getDialogPane().getButtonTypes().addAll(confirmButton, ButtonType.CANCEL);
+    
+                VBox content = new VBox(10);
+                content.getChildren().addAll(userLabel, userField, bookLabel, bookComboBox);
+                content.setPadding(new Insets(10));
+                devolucaoDialog.getDialogPane().setContent(content);
+    
+                devolucaoDialog.setResultConverter(dialogButton -> {
+                    if (dialogButton == confirmButton) {
+                        String user = userField.getText();
+                        String bookTitle = bookComboBox.getValue();
+    
+                        // Lógica para devolver o livro
+                        for (Livro livro : biblioteca) {
+                            if ((livro.getTitulo() + " (" + livro.getTipo() + ")").equals(bookTitle)) {
+                                if (livro.getNomeEmprestimo().contains(user)) {
+                                    livro.devolverLivro(user);
+                                    if (!bookComboBox.getItems().contains(livro.getTitulo() + " (" + livro.getTipo() + ")")) {
+                                        bookComboBox.getItems().add(livro.getTitulo() + " (" + livro.getTipo() + ")");
+                                    }
+                                    break;
+                                } else {
+                                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                                    alert.setTitle("Devolução Falhou");
+                                    alert.setContentText("Dados de devolução incorretos.");
+                                    alert.showAndWait();
+                                    return null;
+                                }
+                            }
+                        }
+    
+                        // Mostrar pop-up de confirmação
+                        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                        alert.setTitle("Devolução Registrada");
+                        alert.setHeaderText(null);
+                        alert.setContentText("A devolução foi registrada com sucesso!");
+                        alert.showAndWait();
+    
+                        return "devolvido";
+                    }
+                    return null;
+                });
+    
+                devolucaoDialog.showAndWait();
+            }
+        });
+    }
+    
+    // Implementação do registro de empréstimo
+    private void registrarEmprestimo(String user, String bookTitle, LocalDate date) {
+        for (Livro livro : biblioteca) {
+            if ((livro.getTitulo() + " (" + livro.getTipo() + ")").equals(bookTitle)) {
+                if (!livro.isEmprestado() && livro.getQuantidade() > 0) {
+                    livro.registrarEmprestimo(user);
+                    livro.setQuantidade(livro.getQuantidade() - 1);
+                    break;
+                }
             }
         }
-                    // Remover o livro da lista de categorias
-                    removerLivroDaLista(bookComboBox, bookTitle);
-
-                    // Mostrar pop-up de confirmação
-                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                    alert.setTitle("Empréstimo Registrado");
-                    alert.setHeaderText(null);
-                    alert.setContentText("O empréstimo foi registrado com sucesso!");
-                    alert.showAndWait();
-
-
-                    return "emprestado";
+    }
+    
+    // Implementação da devolução de livro
+    private void devolverLivro(String user, String bookTitle) {
+        for (Livro livro : biblioteca) {
+            if ((livro.getTitulo() + " (" + livro.getTipo() + ")").equals(bookTitle)) {
+                if (livro.isEmprestado() && livro.getNomeEmprestimo().equals(user)) {
+                    livro.devolverLivro(user);
+                    livro.setQuantidade(livro.getQuantidade() + 1);
+                    break;
                 }
-                return null;
-            });
-
-            emprestimoDialog.showAndWait();
-        } else if (option.equals("Devolver Livro")) {
-            // Implementação da devolução de livro
-            Dialog<String> devolucaoDialog = new Dialog<>();
-            devolucaoDialog.setTitle("Devolver Livro");
-            devolucaoDialog.setHeaderText("Digite os detalhes da devolução:");
-
-            // Campos para inserir os detalhes da devolução
-            Label userLabel = new Label("Utilizador:");
-            TextField userField = new TextField();
-
-            Label bookLabel = new Label("Livro:");
-            ComboBox<String> bookComboBox = new ComboBox<>();
-            for (Livro livro : biblioteca) {
-                bookComboBox.getItems().add(livro.getTitulo() + " (" + livro.getTipo() + ")");
             }
-
-            ButtonType confirmButton = new ButtonType("Confirmar", ButtonBar.ButtonData.OK_DONE);
-            devolucaoDialog.getDialogPane().getButtonTypes().addAll(confirmButton, ButtonType.CANCEL);
-
-            VBox content = new VBox(10);
-            content.getChildren().addAll(userLabel, userField, bookLabel, bookComboBox);
-            content.setPadding(new Insets(10));
-            devolucaoDialog.getDialogPane().setContent(content);
-
-            devolucaoDialog.setResultConverter(dialogButton -> {
-                if (dialogButton == confirmButton) {
-                    String user = userField.getText();
-                    String bookTitle = bookComboBox.getValue();
-                    // Lógica para devolver o livro
-                    devolverLivro(user, bookTitle);
-
-                    // Remover o livro da lista de categorias
-                    removerLivroDaLista(bookComboBox, bookTitle);
-
-                    // Mostrar pop-up de confirmação
-                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                    alert.setTitle("Devolução Registrada");
-                    alert.setHeaderText(null);
-                    alert.setContentText("A devolução foi registrada com sucesso!");
-                    alert.showAndWait();
-
-                    return "devolvido";
-                }
-                return null;
-            });
-
-            devolucaoDialog.showAndWait();
         }
-    });
-}
+    }
 
-// Métodos fictícios para registrar empréstimo e devolução
-private void registrarEmprestimo(String user, String bookTitle, LocalDate date) { // Implementação do registro de empréstimo
-}
-
-private void devolverLivro(String user, String bookTitle) { // Implementação da devolução de livro
-}
-
-private void removerLivroDaLista(ComboBox<String> bookComboBox, String bookTitle) {
-    bookComboBox.getItems().remove(bookTitle);
-}
 
 
     private void categorizarLivros(Stage stage) {
