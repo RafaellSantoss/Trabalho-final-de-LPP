@@ -1,4 +1,3 @@
-import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringJoiner;
@@ -60,7 +59,7 @@ abstract class Livro {
         return tipo; 
     }
 
-    public void registrarEmprestimo(String nomeEmprestimo) {
+    public void registarEmprestimo(String nomeEmprestimo) {
         if (quantidade > 0) { 
             this.emprestado = true; 
             this.nomeEmprestimo.add(nomeEmprestimo);

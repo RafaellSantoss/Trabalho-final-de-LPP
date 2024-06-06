@@ -5,13 +5,10 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.time.LocalDate; // Importação da classe LocalDate para lidar com datas
+import java.time.Year; // Importação da classe Year para obter o ano atual
 import java.util.ArrayList; // Importação da classe ArrayList para armazenar os livros
 import java.util.List; // Importação da interface List para manipular listas
 import java.util.Optional; // Importação da classe Optional para tratamento de valores opcionais
-
-import javax.swing.JComboBox;
-
-import java.time.Year; // Importação da classe Year para obter o ano atual
 
 import javafx.application.Application; // Importação da classe Application para criar aplicativos JavaFX
 import javafx.geometry.Insets; // Importação da classe Insets para definir margens em layouts
@@ -27,9 +24,6 @@ import javafx.scene.control.DateCell;
 import javafx.scene.control.DatePicker; // Importação da classe DatePicker para seleção de datas
 import javafx.scene.control.Dialog; // Importação da classe Dialog para criar diálogos personalizados
 import javafx.scene.control.Label; // Importação da classe Label para criar rótulos
-import javafx.scene.control.Menu; // Importação da classe Menu para criar menus
-import javafx.scene.control.MenuBar; // Importação da classe MenuBar para criar barras de menu
-import javafx.scene.control.MenuItem; // Importação da classe MenuItem para criar itens de menu
 import javafx.scene.control.TextArea; // Importação da classe TextArea para criar áreas de texto
 import javafx.scene.control.TextField; // Importação da classe TextField para criar campos de texto
 import javafx.scene.control.TextFormatter; // Importação da classe TextFormatter para formatar texto
@@ -345,16 +339,16 @@ public class BibliotecaGUI extends Application {
 
     private void gerirEmprestimos(Stage stage) {
         // Diálogo para gerir empréstimos
-        ChoiceDialog<String> dialog = new ChoiceDialog<>("Registrar Empréstimo", "Registrar Empréstimo", "Devolver Livro");
+        ChoiceDialog<String> dialog = new ChoiceDialog<>("Registar Empréstimo", "Registar Empréstimo", "Devolver Livro");
         dialog.setTitle("Gerir Empréstimos");
         dialog.setHeaderText("Escolha uma opção:");
     
         Optional<String> result = dialog.showAndWait();
         result.ifPresent(option -> {
-            if (option.equals("Registrar Empréstimo")) {
+            if (option.equals("Registar Empréstimo")) {
                 // Implementação do registro de empréstimo
                 Dialog<String> emprestimoDialog = new Dialog<>();
-                emprestimoDialog.setTitle("Registrar Empréstimo");
+                emprestimoDialog.setTitle("Registar Empréstimo");
                 emprestimoDialog.setHeaderText("Digite os detalhes do empréstimo:");
     
                 // Campos para inserir os detalhes do empréstimo
@@ -403,11 +397,11 @@ public class BibliotecaGUI extends Application {
                             return null;
                         }
     
-                        // Lógica para registrar o empréstimo
+                        // Lógica para registar o empréstimo
                         for (Livro livro : biblioteca) {
                             if ((livro.getTitulo() + " (" + livro.getTipo() + ")").equals(bookTitle)) {
                                 if (livro.getQuantidade() > 0) {
-                                    livro.registrarEmprestimo(user);
+                                    livro.registarEmprestimo(user);
 
                                     if (livro.getQuantidade() == 0) {
                                         bookComboBox.getItems().remove(bookTitle);
@@ -504,11 +498,11 @@ public class BibliotecaGUI extends Application {
     }
     
     // Implementação do registro de empréstimo
-    private void registrarEmprestimo(String user, String bookTitle, LocalDate date) {
+    private void registarEmprestimo(String user, String bookTitle, LocalDate date) {
         for (Livro livro : biblioteca) {
             if ((livro.getTitulo() + " (" + livro.getTipo() + ")").equals(bookTitle)) {
                 if (!livro.isEmprestado() && livro.getQuantidade() > 0) {
-                    livro.registrarEmprestimo(user);
+                    livro.registarEmprestimo(user);
                     livro.setQuantidade(livro.getQuantidade() - 1);
                     break;
                 }
